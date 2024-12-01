@@ -9,7 +9,7 @@
 9 Izvestac2
 10 Izvestac3
 11 Izvestac1
-12 Izvestac2  
+12 Izvestac2
 13 Izvestac3
 14 Izvestac1
 15 Izvestac2
