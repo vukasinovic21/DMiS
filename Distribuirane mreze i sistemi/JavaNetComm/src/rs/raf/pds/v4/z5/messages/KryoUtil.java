@@ -13,5 +13,14 @@ public class KryoUtil {
 		kryo.register(InfoMessage.class);
 		kryo.register(PrivateMessage.class);
 		kryo.register(MultiMessage.class);
+		kryo.register(ChatRoomHistory.class);
+		kryo.register(RPCCreateRoomReq.class);
+		kryo.register(RPCJoinRoomReq.class);
+		kryo.register(RPCListRoomsReq.class);
+		kryo.register(RPCListRoomsRes.class);
+		kryo.register(RPCRoomMessagesRes.class);
+		kryo.register(java.util.LinkedList.class);
+		kryo.register(java.util.ArrayList.class);
+		kryo.register(RPCRoomChatMessage.class);
 	}
 }

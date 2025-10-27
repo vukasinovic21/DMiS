@@ -20,7 +20,8 @@ public class ChatServer implements Runnable{
 	final int portNumber;
 	ConcurrentMap<String, Connection> userConnectionMap = new ConcurrentHashMap<String, Connection>();
 	ConcurrentMap<Connection, String> connectionUserMap = new ConcurrentHashMap<Connection, String>();
-	
+	ConcurrentMap<String, ChatRoomHistory> chatRooms = new ConcurrentHashMap<>();
+
 	public ChatServer(int portNumber) {
 		this.server = new Server();
 		
@@ -75,6 +76,48 @@ public class ChatServer implements Runnable{
 						if (connTo != null && connTo.isConnected()) {
 							connTo.sendTCP(new ChatMessage("(multi) " + mm.getFromUser(), mm.getTxt()));
 						}
+					}
+					return;
+				}
+
+				if (object instanceof RPCCreateRoomReq) {
+					RPCCreateRoomReq req = (RPCCreateRoomReq) object;
+					chatRooms.putIfAbsent(req.getRoomName(), new ChatRoomHistory(req.getRoomName()));
+					connection.sendTCP(new InfoMessage("Room '" + req.getRoomName() + "' created."));
+					return;
+				}
+
+				if (object instanceof RPCListRoomsReq) {
+					String[] rooms = chatRooms.keySet().toArray(new String[0]);
+					connection.sendTCP(new RPCListRoomsRes(rooms));
+					return;
+				}
+
+				if (object instanceof RPCJoinRoomReq) {
+					RPCJoinRoomReq req = (RPCJoinRoomReq) object;
+					ChatRoomHistory room = chatRooms.get(req.getRoomName());
+					if (room != null) {
+						room.addUser(req.getUserName());
+						connection.sendTCP(new RPCRoomMessagesRes(room.getLastMessages()));
+					} else {
+						connection.sendTCP(new InfoMessage("Room '" + req.getRoomName() + "' does not exist."));
+					}
+					return;
+				}
+
+				if (object instanceof RPCRoomChatMessage) {
+					RPCRoomChatMessage rcm = (RPCRoomChatMessage) object;
+					ChatRoomHistory room = chatRooms.get(rcm.getRoomName());
+					if (room != null) {
+						room.addMessage(new ChatMessage(rcm.getFromUser(), rcm.getTxt()));
+						for (String user : room.getUsers()) {
+							Connection conn = userConnectionMap.get(user);
+							if (conn != null && conn.isConnected()) {
+								conn.sendTCP(rcm);
+							}
+						}
+					} else {
+						connection.sendTCP(new InfoMessage("Room '" + rcm.getRoomName() + "' does not exist."));
 					}
 					return;
 				}

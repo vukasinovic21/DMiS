@@ -65,6 +65,30 @@ public class ChatClient implements Runnable{
 					showMessage(message.getUser()+"r:"+message.getTxt());
 					return;
 				}
+
+				if (object instanceof RPCListRoomsRes) {
+					RPCListRoomsRes res = (RPCListRoomsRes) object;
+					System.out.println("Available rooms:");
+					for (String room : res.getRoomNames()) {
+						System.out.println("- " + room);
+					}
+					return;
+				}
+
+				if (object instanceof RPCRoomMessagesRes) {
+					RPCRoomMessagesRes res = (RPCRoomMessagesRes) object;
+					System.out.println("Last messages in the room:");
+					for (ChatMessage msg : res.getLastMessages()) {
+						System.out.println(msg.getUser() + ": " + msg.getTxt());
+					}
+					return;
+				}
+
+				if (object instanceof RPCRoomChatMessage) {
+					RPCRoomChatMessage rcm = (RPCRoomChatMessage) object;
+					System.out.println("[" + rcm.getRoomName() + "] " + rcm.getFromUser() + ": " + rcm.getTxt());
+					return;
+				}
 			}
 			
 			public void disconnected(Connection connection) {
@@ -86,6 +110,18 @@ public class ChatClient implements Runnable{
 			System.out.printf((i==users.length-1?"\n":", "));
 		}
 	}
+	private void createRoom(String roomName) {
+		client.sendTCP(new RPCCreateRoomReq(roomName));
+	}
+
+	private void getRooms() {
+		client.sendTCP(new RPCListRoomsReq());
+	}
+
+	private void joinRoom(String roomName) {
+		client.sendTCP(new RPCJoinRoomReq(roomName, userName));
+	}
+
 	public void start() throws IOException {
 		client.start();
 		connect();
@@ -140,6 +176,25 @@ public class ChatClient implements Runnable{
 						} else {
 							String[] users = parts[1].split(",");
 							client.sendTCP(new MultiMessage(userName, users, parts[2]));
+						}
+					}
+					else if (userInput.startsWith("/newRoom ")) {
+						String roomName = userInput.split(" ", 2)[1];
+						createRoom(roomName);
+					}
+					else if (userInput.equalsIgnoreCase("/getRooms")) {
+						getRooms();
+					}
+					else if (userInput.startsWith("/joinRoom ")) {
+						String roomName = userInput.split(" ", 2)[1];
+						joinRoom(roomName);
+					}
+					else if (userInput.startsWith("/room ")) {
+						String[] parts = userInput.split(" ", 3);
+						if (parts.length < 3) {
+							System.out.println("Usage: /room <roomName> <message>");
+						} else {
+							client.sendTCP(new RPCRoomChatMessage(parts[1], userName, parts[2]));
 						}
 					}
 	            	else {
