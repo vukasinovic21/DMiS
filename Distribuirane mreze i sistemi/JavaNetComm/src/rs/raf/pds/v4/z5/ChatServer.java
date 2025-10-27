@@ -8,12 +8,7 @@ import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 import com.esotericsoftware.kryonet.Server;
 
-import rs.raf.pds.v4.z5.messages.ChatMessage;
-import rs.raf.pds.v4.z5.messages.InfoMessage;
-import rs.raf.pds.v4.z5.messages.KryoUtil;
-import rs.raf.pds.v4.z5.messages.ListUsers;
-import rs.raf.pds.v4.z5.messages.Login;
-import rs.raf.pds.v4.z5.messages.WhoRequest;
+import rs.raf.pds.v4.z5.messages.*;
 
 
 public class ChatServer implements Runnable{
@@ -59,6 +54,28 @@ public class ChatServer implements Runnable{
 				if (object instanceof WhoRequest) {
 					ListUsers listUsers = new ListUsers(getAllUsers());
 					connection.sendTCP(listUsers);
+					return;
+				}
+
+				if (object instanceof PrivateMessage) {
+					PrivateMessage pm = (PrivateMessage) object;
+					Connection toConn = userConnectionMap.get(pm.getToUser());
+					if (toConn != null && toConn.isConnected()) {
+						toConn.sendTCP(new ChatMessage("(private) " + pm.getFromUser(), pm.getTxt()));
+					} else {
+						connection.sendTCP(new InfoMessage("User " + pm.getToUser() + " not found."));
+					}
+					return;
+				}
+
+				if (object instanceof MultiMessage) {
+					MultiMessage mm = (MultiMessage) object;
+					for (String toUser : mm.getToUsers()) {
+						Connection connTo = userConnectionMap.get(toUser);
+						if (connTo != null && connTo.isConnected()) {
+							connTo.sendTCP(new ChatMessage("(multi) " + mm.getFromUser(), mm.getTxt()));
+						}
+					}
 					return;
 				}
 			}

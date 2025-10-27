@@ -8,12 +8,7 @@ import com.esotericsoftware.kryonet.Client;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 
-import rs.raf.pds.v4.z5.messages.ChatMessage;
-import rs.raf.pds.v4.z5.messages.InfoMessage;
-import rs.raf.pds.v4.z5.messages.KryoUtil;
-import rs.raf.pds.v4.z5.messages.ListUsers;
-import rs.raf.pds.v4.z5.messages.Login;
-import rs.raf.pds.v4.z5.messages.WhoRequest;
+import rs.raf.pds.v4.z5.messages.*;
 
 public class ChatClient implements Runnable{
 
@@ -129,7 +124,24 @@ public class ChatClient implements Runnable{
 	            	}
 	            	else if ("WHO".equalsIgnoreCase(userInput)){
 	            		client.sendTCP(new WhoRequest());
-	            	}							
+	            	}
+					else if (userInput.startsWith("/w ")) {
+						String[] parts = userInput.split(" ", 3);
+						if (parts.length < 3) {
+							System.out.println("Usage: /w <username> <message>");
+						} else {
+							client.sendTCP(new PrivateMessage(userName, parts[1], parts[2]));
+						}
+					}
+					else if (userInput.startsWith("/m ")) {
+						String[] parts = userInput.split(" ", 3);
+						if (parts.length < 3) {
+							System.out.println("Usage: /m <user1,user2,...> <message>");
+						} else {
+							String[] users = parts[1].split(",");
+							client.sendTCP(new MultiMessage(userName, users, parts[2]));
+						}
+					}
 	            	else {
 	            		ChatMessage message = new ChatMessage(userName, userInput);
 	            		client.sendTCP(message);
