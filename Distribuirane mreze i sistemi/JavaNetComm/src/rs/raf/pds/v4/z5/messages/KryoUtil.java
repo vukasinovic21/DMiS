@@ -23,5 +23,6 @@ public class KryoUtil {
 		kryo.register(java.util.ArrayList.class);
 		kryo.register(RPCRoomChatMessage.class);
 		kryo.register(RPCGetLastMessagesReq.class);
+		kryo.register(RPCEditMessage.class);
 	}
 }

@@ -86,13 +86,16 @@ public class ChatClient implements Runnable{
 
 				if (object instanceof RPCRoomChatMessage) {
 					RPCRoomChatMessage rcm = (RPCRoomChatMessage) object;
+					String base = "[" + rcm.getRoomName() + "] " + rcm.getFromUser() +
+							" (#" + rcm.getId();
 					if (rcm.getReplyTo() != -1) {
-						System.out.println("[" + rcm.getRoomName() + "] " + rcm.getFromUser() +
-								" (#" + rcm.getId() +", reply to #" + rcm.getReplyTo() + "): " + rcm.getTxt());
-					} else {
-						System.out.println("[" + rcm.getRoomName() + "] " + rcm.getFromUser() +
-								" (#" + rcm.getId() + "): " + rcm.getTxt());
+						base += ", reply to #" + rcm.getReplyTo();
 					}
+					base += "): " + rcm.getTxt();
+					if (rcm.isEdited()) {
+						base += " (edited)";
+					}
+					System.out.println(base);
 				}
 			}
 			
@@ -137,6 +140,10 @@ public class ChatClient implements Runnable{
 
 	private void replyOnMessage(String roomName, int replyId, String userName, String txt){
 		client.sendTCP(new RPCRoomChatMessage(roomName, userName, txt, replyId));
+	}
+
+	private void editMessage(String roomName, int id, String editedMessage, String userName) {
+		client.sendTCP(new RPCEditMessage(roomName, id, editedMessage, userName));
 	}
 
 	public void start() throws IOException {
@@ -225,6 +232,12 @@ public class ChatClient implements Runnable{
 						if (parts.length < 4) {
 							System.out.println("Usage: /reply <roomName> <messageId> <message>");
 						} else replyOnMessage(parts[1], Integer.parseInt(parts[2]), userName, parts[3]);
+					}
+					else if (userInput.startsWith("/edit ")) {
+						String[] parts = userInput.split(" ", 4);
+						if (parts.length < 4) {
+							System.out.println("Usage: /edit <roomName> <messageId> <newMessage>");
+						} else editMessage(parts[1], Integer.parseInt(parts[2]), parts[3], userName);
 					}
 	            	else {
 	            		ChatMessage message = new ChatMessage(userName, userInput);

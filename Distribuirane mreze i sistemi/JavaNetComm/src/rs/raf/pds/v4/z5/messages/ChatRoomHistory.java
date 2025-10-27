@@ -6,8 +6,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class ChatRoomHistory {
     private String roomName;
-    private List<String> users; // username lista
-    private LinkedList<RPCRoomChatMessage> messages; // poslednjih 10 poruka
+    private List<String> users;
+    private LinkedList<RPCRoomChatMessage> messages;
     private AtomicInteger nextMessageId;
 
     protected ChatRoomHistory() {}
@@ -30,7 +30,6 @@ public class ChatRoomHistory {
     public synchronized void addMessage(RPCRoomChatMessage msg) {
         msg.setId(nextMessageId.getAndIncrement());
         messages.add(msg);
-        if (messages.size() > 10) messages.removeFirst();
     }
 
     public synchronized List<RPCRoomChatMessage> getLastMessages() {

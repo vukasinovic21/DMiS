@@ -132,6 +132,31 @@ public class ChatServer implements Runnable{
 					}
 					return;
 				}
+
+				if (object instanceof RPCEditMessage) {
+					RPCEditMessage edit = (RPCEditMessage) object;
+					ChatRoomHistory room = chatRooms.get(edit.getRoomName());
+					if (room != null) {
+						RPCRoomChatMessage msg = room.getMessageById(edit.getMessageId());
+						if (msg != null && msg.getFromUser().equals(edit.getEditor())) {
+							msg.setTxt(edit.getNewText());
+							msg.setEdited(true);
+
+							for (String user : room.getUsers()) {
+								Connection userConn = userConnectionMap.get(user);
+								if (userConn != null) userConn.sendTCP(msg);
+							}
+
+							System.out.println("Message (#" + msg.getId() + ") edited by " + edit.getEditor());
+						}
+						else {
+							connection.sendTCP(new InfoMessage("You can only edit your own messages."));
+						}
+					}
+					else {
+						connection.sendTCP(new InfoMessage("Room '" + room + "' does not exist."));
+					}
+				}
 			}
 			
 			public void disconnected(Connection connection) {
@@ -200,8 +225,8 @@ public class ChatServer implements Runnable{
 			}
 		}
 	}
-	
-	
+
+
 	public static void main(String[] args) {
 		
 		if (args.length != 1) {
