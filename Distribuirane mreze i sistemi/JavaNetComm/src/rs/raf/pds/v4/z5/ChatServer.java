@@ -121,6 +121,17 @@ public class ChatServer implements Runnable{
 					}
 					return;
 				}
+
+				if (object instanceof RPCGetLastMessagesReq) {
+					RPCGetLastMessagesReq req = (RPCGetLastMessagesReq) object;
+					ChatRoomHistory room = chatRooms.get(req.getRoomName());
+					if (room != null) {
+						connection.sendTCP(new RPCRoomMessagesRes(room.getLastMessages()));
+					} else {
+						connection.sendTCP(new InfoMessage("Room '" + req.getRoomName() + "' does not exist."));
+					}
+					return;
+				}
 			}
 			
 			public void disconnected(Connection connection) {

@@ -122,6 +122,14 @@ public class ChatClient implements Runnable{
 		client.sendTCP(new RPCJoinRoomReq(roomName, userName));
 	}
 
+	private void sendMessToRoom(String roomName, String userName, String txt){
+		client.sendTCP(new RPCRoomChatMessage(roomName, userName, txt));
+	}
+
+	private void getLastMessages(String roomName) {
+		client.sendTCP(new RPCGetLastMessagesReq(roomName));
+	}
+
 	public void start() throws IOException {
 		client.start();
 		connect();
@@ -193,8 +201,14 @@ public class ChatClient implements Runnable{
 						String[] parts = userInput.split(" ", 3);
 						if (parts.length < 3) {
 							System.out.println("Usage: /room <roomName> <message>");
+						} else sendMessToRoom(parts[1], userName, parts[2]);
+					}
+					else if (userInput.startsWith("/getMessages ")) {
+						String[] parts = userInput.split(" ", 2);
+						if (parts.length < 2) {
+							System.out.println("Usage: /getMessages <roomName>");
 						} else {
-							client.sendTCP(new RPCRoomChatMessage(parts[1], userName, parts[2]));
+							getLastMessages(parts[1]);
 						}
 					}
 	            	else {
