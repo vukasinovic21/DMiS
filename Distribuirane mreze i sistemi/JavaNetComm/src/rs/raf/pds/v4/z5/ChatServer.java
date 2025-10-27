@@ -109,7 +109,7 @@ public class ChatServer implements Runnable{
 					RPCRoomChatMessage rcm = (RPCRoomChatMessage) object;
 					ChatRoomHistory room = chatRooms.get(rcm.getRoomName());
 					if (room != null) {
-						room.addMessage(new ChatMessage(rcm.getFromUser(), rcm.getTxt()));
+						room.addMessage(rcm);
 						for (String user : room.getUsers()) {
 							Connection conn = userConnectionMap.get(user);
 							if (conn != null && conn.isConnected()) {

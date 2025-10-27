@@ -78,16 +78,21 @@ public class ChatClient implements Runnable{
 				if (object instanceof RPCRoomMessagesRes) {
 					RPCRoomMessagesRes res = (RPCRoomMessagesRes) object;
 					System.out.println("Last messages in the room:");
-					for (ChatMessage msg : res.getLastMessages()) {
-						System.out.println(msg.getUser() + ": " + msg.getTxt());
+					for (RPCRoomChatMessage msg : res.getLastMessages()) {
+						System.out.println(msg.getFromUser() + " (#" + msg.getId() + "): " + msg.getTxt());
 					}
 					return;
 				}
 
 				if (object instanceof RPCRoomChatMessage) {
 					RPCRoomChatMessage rcm = (RPCRoomChatMessage) object;
-					System.out.println("[" + rcm.getRoomName() + "] " + rcm.getFromUser() + ": " + rcm.getTxt());
-					return;
+					if (rcm.getReplyTo() != -1) {
+						System.out.println("[" + rcm.getRoomName() + "] " + rcm.getFromUser() +
+								" (#" + rcm.getId() +", reply to #" + rcm.getReplyTo() + "): " + rcm.getTxt());
+					} else {
+						System.out.println("[" + rcm.getRoomName() + "] " + rcm.getFromUser() +
+								" (#" + rcm.getId() + "): " + rcm.getTxt());
+					}
 				}
 			}
 			
@@ -128,6 +133,10 @@ public class ChatClient implements Runnable{
 
 	private void getLastMessages(String roomName) {
 		client.sendTCP(new RPCGetLastMessagesReq(roomName));
+	}
+
+	private void replyOnMessage(String roomName, int replyId, String userName, String txt){
+		client.sendTCP(new RPCRoomChatMessage(roomName, userName, txt, replyId));
 	}
 
 	public void start() throws IOException {
@@ -210,6 +219,12 @@ public class ChatClient implements Runnable{
 						} else {
 							getLastMessages(parts[1]);
 						}
+					}
+					else if (userInput.startsWith("/reply ")) {
+						String[] parts = userInput.split(" ", 4);
+						if (parts.length < 4) {
+							System.out.println("Usage: /reply <roomName> <messageId> <message>");
+						} else replyOnMessage(parts[1], Integer.parseInt(parts[2]), userName, parts[3]);
 					}
 	            	else {
 	            		ChatMessage message = new ChatMessage(userName, userInput);
