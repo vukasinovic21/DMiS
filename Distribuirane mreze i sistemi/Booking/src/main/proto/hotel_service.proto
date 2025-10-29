@@ -1,0 +1,40 @@
+syntax = "proto3";
+
+option java_package = "fin.booking.grpc";
+option java_multiple_files = true;
+option java_outer_classname = "HotelServiceProto";
+
+service HotelService {
+  rpc GetAvailableHotels (HotelRequest) returns (HotelList);
+}
+
+message HotelRequest {
+  string city = 1;
+  int32 minStars = 2;
+  double maxDistance = 3;
+}
+
+message HotelInfo {
+  string name = 1;
+  int32 stars = 2;
+  string city = 3;
+  double distance = 4;
+  double price = 5;
+  int32 freeRooms = 6;
+}
+
+message HotelList {
+  repeated HotelInfo hotels = 1;
+}
+
+message ReservationRequest {
+  string hotelName = 1;
+  string clientName = 2;
+  string startDate = 3;
+  int32 nights = 4;
+}
+
+message ReservationResponse {
+  bool success = 1;
+  string message = 2;
+}
