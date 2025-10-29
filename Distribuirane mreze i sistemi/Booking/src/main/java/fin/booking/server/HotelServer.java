@@ -12,7 +12,7 @@ public class HotelServer {
             .addService(new HotelServiceImpl())
             .build();
 
-        System.out.println("🏨 Hotel server started on port 50051...");
+        System.out.println("Hotel server started on port 50051...");
         server.start();
         server.awaitTermination();
     }
