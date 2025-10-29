@@ -36,5 +36,17 @@ message ReservationRequest {
 
 message ReservationResponse {
   bool success = 1;
+  string reservationId = 2;
+  string message = 3;
+}
+
+message PaymentRequest {
+  string reservationId = 1;
+  string clientName = 2;
+  double amount = 3;
+}
+
+message PaymentResponse {
+  bool success = 1;
   string message = 2;
 }
