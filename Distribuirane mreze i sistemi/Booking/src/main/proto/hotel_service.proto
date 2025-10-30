@@ -7,6 +7,7 @@ option java_outer_classname = "HotelServiceProto";
 service HotelService {
   rpc GetAvailableHotels (HotelRequest) returns (HotelList);
   rpc MakeReservation (ReservationRequest) returns (ReservationResponse);
+  rpc CancelReservation(CancelRequest) returns (CancelResponse);
 }
 
 message HotelRequest {
@@ -50,4 +51,15 @@ message PaymentRequest {
 message PaymentResponse {
   bool success = 1;
   string message = 2;
+}
+
+message CancelRequest {
+  string clientName = 1;
+  string hotelName = 2;
+  string reservationId = 3;
+}
+
+message CancelResponse {
+  string message = 1;
+  bool success = 2;
 }

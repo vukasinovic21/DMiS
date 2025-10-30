@@ -105,4 +105,35 @@ public class HotelServiceImpl extends HotelServiceGrpc.HotelServiceImplBase {
     public List<Hotel> getHotels() {
         return hotels;
     }
+
+    @Override
+    public void cancelReservation(CancelRequest request, StreamObserver<CancelResponse> responseObserver) {
+        String hotelName = request.getHotelName();
+        String clientName = request.getClientName();
+
+        Hotel hotel = hotels.stream()
+                .filter(h -> h.getName().equalsIgnoreCase(hotelName))
+                .findFirst()
+                .orElse(null);
+
+        if (hotel == null) {
+            responseObserver.onNext(CancelResponse.newBuilder()
+                    .setMessage("Hotel not found: " + hotelName)
+                    .setSuccess(false)
+                    .build());
+            responseObserver.onCompleted();
+            return;
+        }
+
+        hotel.setFreeRooms(hotel.getFreeRooms() + 1);
+
+        notifier.publish("Update - " + hotel.getName() + ", free rooms: " + hotel.getFreeRooms());
+        adjustPrice(hotel);
+
+        responseObserver.onNext(CancelResponse.newBuilder()
+                .setMessage("Reservation successfully cancelled at " + hotelName + " by " + clientName)
+                .setSuccess(true)
+                .build());
+        responseObserver.onCompleted();
+    }
 }
