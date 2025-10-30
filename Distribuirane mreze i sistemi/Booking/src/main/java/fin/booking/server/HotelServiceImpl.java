@@ -45,7 +45,7 @@ public class HotelServiceImpl extends HotelServiceGrpc.HotelServiceImplBase {
         }
 
         for (HotelInfo hi : matched) {
-            notifier.publish("Hotel update: " + hi.getName() + " - free rooms: " + hi.getFreeRooms() + ", price: " + hi.getPrice());
+            //notifier.publish("Update - " + hi.getName() + ", free rooms: " + hi.getFreeRooms() + ", price: " + hi.getPrice());
         }
 
         HotelList response = HotelList.newBuilder()
@@ -74,7 +74,9 @@ public class HotelServiceImpl extends HotelServiceGrpc.HotelServiceImplBase {
         } else {
             hotel.setFreeRooms(hotel.getFreeRooms() - 1);
             adjustPrice(hotel);
-            notifier.publish("Hotel update: " + hotel.getName() + " - free rooms: " + hotel.getFreeRooms());
+            if(hotel.getFreeRooms() == 0)
+                notifier.publish(" " + hotel.getName() + ", sold out!");
+            else notifier.publish("Update - " + hotel.getName() + ", free rooms: " + hotel.getFreeRooms());
 
             response.setSuccess(true)
                 .setMessage("Reservation successful for " + request.getClientName());
@@ -98,5 +100,9 @@ public class HotelServiceImpl extends HotelServiceGrpc.HotelServiceImplBase {
             h.setLowerPrice(false);
             h.setHigherPrice(false);
         }
+    }
+
+    public List<Hotel> getHotels() {
+        return hotels;
     }
 }
