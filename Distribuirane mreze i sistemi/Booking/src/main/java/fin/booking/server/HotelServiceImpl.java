@@ -18,7 +18,7 @@ public class HotelServiceImpl extends HotelServiceGrpc.HotelServiceImplBase {
 
         hotels.add(new Hotel("Hotel1 Kg", 4, "Kragujevac", 1.2, 80.0, 5));
         hotels.add(new Hotel("Hotel2 Bg", 5, "Belgrade", 0.8, 100.0, 3));
-        hotels.add(new Hotel("Hotel3 Ibis", 3, "Budapest", 2.5, 50.0, 10));
+        hotels.add(new Hotel("Hotel3 Ibis", 3, "Budapest", 2.5, 50.0, 4));
         hotels.add(new Hotel("Hotel4 Sheraton", 4, "Budapest", 1.0, 60.0, 4));
         hotels.add(new Hotel("Hotel5 Stazione Centrale", 3, "Budapest", 1.6, 80.0, 2));
     }
@@ -73,6 +73,7 @@ public class HotelServiceImpl extends HotelServiceGrpc.HotelServiceImplBase {
                 .setMessage("No free rooms available");
         } else {
             hotel.setFreeRooms(hotel.getFreeRooms() - 1);
+            adjustPrice(hotel);
             notifier.publish("Hotel update: " + hotel.getName() + " - free rooms: " + hotel.getFreeRooms());
 
             response.setSuccess(true)
@@ -81,5 +82,21 @@ public class HotelServiceImpl extends HotelServiceGrpc.HotelServiceImplBase {
 
         responseObserver.onNext(response.build());
         responseObserver.onCompleted();
+    }
+
+    private void adjustPrice(Hotel h) {
+        if (h.getFreeRooms() <= 3 && !h.isHigherPrice()) {
+            h.setPrice(h.getBasePrice() * 1.2);
+            h.setHigherPrice(true);
+            notifier.publish("Price increased for " + h.getName() + ": " + h.getPrice());
+        } else if (h.getFreeRooms() > 8 && !h.isLowerPrice()) {
+            h.setPrice(h.getBasePrice() * 0.8);
+            h.setLowerPrice(true);
+            notifier.publish("Price decreased for " + h.getName() + ": " + h.getPrice());
+        } else if(h.getFreeRooms() > 3 && h.getFreeRooms() <=  8 && (h.isLowerPrice() || h.isHigherPrice())){
+            h.setPrice(h.getBasePrice());
+            h.setLowerPrice(false);
+            h.setHigherPrice(false);
+        }
     }
 }

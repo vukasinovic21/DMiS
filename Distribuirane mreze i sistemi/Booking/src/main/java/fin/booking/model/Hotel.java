@@ -8,6 +8,9 @@ public class Hotel {
     private double distanceFromCenter;
     private double price;
     private int freeRooms;
+    private double basePrice;
+    private boolean lowerPrice = false;
+    private boolean higherPrice = false;
 
     public Hotel() {
     }
@@ -19,6 +22,7 @@ public class Hotel {
         this.distanceFromCenter = distanceFromCenter;
         this.price = price;
         this.freeRooms = freeRooms;
+        this.basePrice = price;
     }
 
     public String getName() {
@@ -67,5 +71,29 @@ public class Hotel {
 
     public void setFreeRooms(int freeRooms) {
         this.freeRooms = freeRooms;
+    }
+
+    public double getBasePrice() {
+        return basePrice;
+    }
+
+    public void setBasePrice(double basePrice) {
+        this.basePrice = basePrice;
+    }
+
+    public boolean isLowerPrice() {
+        return lowerPrice;
+    }
+
+    public void setLowerPrice(boolean lowerPrice) {
+        this.lowerPrice = lowerPrice;
+    }
+
+    public boolean isHigherPrice() {
+        return higherPrice;
+    }
+
+    public void setHigherPrice(boolean higherPrice) {
+        this.higherPrice = higherPrice;
     }
 }
