@@ -73,6 +73,7 @@ public class HotelServiceImpl extends HotelServiceGrpc.HotelServiceImplBase {
                 .setMessage("No free rooms available");
         } else {
             hotel.setFreeRooms(hotel.getFreeRooms() - 1);
+            hotel.setProfit(hotel.getProfit() + hotel.getPrice() * request.getNights());
             adjustPrice(hotel);
             if(hotel.getFreeRooms() == 0)
                 notifier.publish(" " + hotel.getName() + ", sold out!");

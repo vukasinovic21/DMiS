@@ -27,7 +27,7 @@ public class HotelServer {
                     Thread.sleep(5000);
                     System.out.println("\nHotel updates:");
                     hotelService.getHotels().forEach(h -> {
-                        System.out.println("INFO: " + h.getName() + ", free rooms: " + h.getFreeRooms() + " price: " + h.getPrice() + "$");
+                        System.out.println("INFO: " + h.getName() + ", free rooms: " + h.getFreeRooms() + " price: " + h.getPrice() + "$, PROFIT: " + h.getProfit());
                     });
                 } catch (InterruptedException e) {
                     break;

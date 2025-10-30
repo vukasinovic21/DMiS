@@ -11,6 +11,7 @@ public class Hotel {
     private double basePrice;
     private boolean lowerPrice = false;
     private boolean higherPrice = false;
+    private double profit = 0.0;
 
     public Hotel() {
     }
@@ -95,5 +96,13 @@ public class Hotel {
 
     public void setHigherPrice(boolean higherPrice) {
         this.higherPrice = higherPrice;
+    }
+
+    public double getProfit() {
+        return profit;
+    }
+
+    public void setProfit(double profit) {
+        this.profit = profit;
     }
 }
