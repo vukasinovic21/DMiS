@@ -3,6 +3,7 @@ package fin.booking.client;
 import fin.booking.grpc.HotelList;
 import fin.booking.grpc.HotelRequest;
 import fin.booking.grpc.HotelServiceGrpc;
+import fin.booking.grpc.ReservationRequest;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 
@@ -41,6 +42,21 @@ public class HotelClient {
         } else {
             hotels.getHotelsList().forEach(h ->
                 System.out.println(h.getName() + " " + h.getStars() + "* " + h.getDistance() + "km " + h.getPrice() + "$ " + h.getFreeRooms()));
+        }
+
+        if (!hotels.getHotelsList().isEmpty()) {
+            String hotelName = hotels.getHotelsList().getFirst().getName();
+
+            var reservationRequest = ReservationRequest.newBuilder()
+                    .setHotelName(hotelName)
+                    .setClientName("Nikola")
+                    .setStartDate("2025-29-10")
+                    .setNights(2)
+                    .build();
+
+            var reservationResponse = stub.makeReservation(reservationRequest);
+
+            System.out.println("Reservation result: " + reservationResponse.getMessage());
         }
 
         channel.shutdown();

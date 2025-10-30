@@ -1,9 +1,6 @@
 package fin.booking.server;
 
-import fin.booking.grpc.HotelInfo;
-import fin.booking.grpc.HotelList;
-import fin.booking.grpc.HotelRequest;
-import fin.booking.grpc.HotelServiceGrpc;
+import fin.booking.grpc.*;
 import fin.booking.model.Hotel;
 import fin.booking.notification.NotificationServer;
 import io.grpc.stub.StreamObserver;
@@ -23,6 +20,7 @@ public class HotelServiceImpl extends HotelServiceGrpc.HotelServiceImplBase {
         hotels.add(new Hotel("Hotel2 Bg", 5, "Belgrade", 0.8, 100.0, 3));
         hotels.add(new Hotel("Hotel3 Ibis", 3, "Budapest", 2.5, 50.0, 10));
         hotels.add(new Hotel("Hotel4 Sheraton", 4, "Budapest", 1.0, 60.0, 4));
+        hotels.add(new Hotel("Hotel5 Stazione Centrale", 3, "Budapest", 1.6, 80.0, 2));
     }
 
     @Override
@@ -55,6 +53,33 @@ public class HotelServiceImpl extends HotelServiceGrpc.HotelServiceImplBase {
             .build();
 
         responseObserver.onNext(response);
+        responseObserver.onCompleted();
+    }
+
+    @Override
+    public void makeReservation(ReservationRequest request, StreamObserver<ReservationResponse> responseObserver) {
+        Hotel hotel = hotels.stream()
+            .filter(h -> h.getName().equalsIgnoreCase(request.getHotelName()))
+            .findFirst()
+            .orElse(null);
+
+        ReservationResponse.Builder response = ReservationResponse.newBuilder();
+
+        if (hotel == null) {
+            response.setSuccess(false)
+                .setMessage("Hotel not found");
+        } else if (hotel.getFreeRooms() <= 0) {
+            response.setSuccess(false)
+                .setMessage("No free rooms available");
+        } else {
+            hotel.setFreeRooms(hotel.getFreeRooms() - 1);
+            notifier.publish("Hotel update: " + hotel.getName() + " - free rooms: " + hotel.getFreeRooms());
+
+            response.setSuccess(true)
+                .setMessage("Reservation successful for " + request.getClientName());
+        }
+
+        responseObserver.onNext(response.build());
         responseObserver.onCompleted();
     }
 }

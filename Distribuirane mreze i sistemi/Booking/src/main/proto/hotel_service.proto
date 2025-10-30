@@ -6,6 +6,7 @@ option java_outer_classname = "HotelServiceProto";
 
 service HotelService {
   rpc GetAvailableHotels (HotelRequest) returns (HotelList);
+  rpc MakeReservation (ReservationRequest) returns (ReservationResponse);
 }
 
 message HotelRequest {
