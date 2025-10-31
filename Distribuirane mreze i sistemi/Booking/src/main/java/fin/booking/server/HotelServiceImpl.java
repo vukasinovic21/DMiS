@@ -7,10 +7,13 @@ import io.grpc.stub.StreamObserver;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class HotelServiceImpl extends HotelServiceGrpc.HotelServiceImplBase {
 
     private final NotificationServer notifier;
+    private final ExecutorService executor = Executors.newFixedThreadPool(5);
     private final List<Hotel> hotels = new ArrayList<>();
 
     public HotelServiceImpl(NotificationServer notifier) {
@@ -58,33 +61,35 @@ public class HotelServiceImpl extends HotelServiceGrpc.HotelServiceImplBase {
 
     @Override
     public void makeReservation(ReservationRequest request, StreamObserver<ReservationResponse> responseObserver) {
-        Hotel hotel = hotels.stream()
-            .filter(h -> h.getName().equalsIgnoreCase(request.getHotelName()))
-            .findFirst()
-            .orElse(null);
+        executor.submit(() -> {
+            Hotel hotel = hotels.stream()
+                    .filter(h -> h.getName().equalsIgnoreCase(request.getHotelName()))
+                    .findFirst()
+                    .orElse(null);
 
-        ReservationResponse.Builder response = ReservationResponse.newBuilder();
+            ReservationResponse.Builder response = ReservationResponse.newBuilder();
 
-        if (hotel == null) {
-            response.setSuccess(false)
-                .setMessage("Hotel not found");
-        } else if (hotel.getFreeRooms() <= 0) {
-            response.setSuccess(false)
-                .setMessage("No free rooms available");
-        } else {
-            hotel.setFreeRooms(hotel.getFreeRooms() - 1);
-            hotel.setProfit(hotel.getProfit() + hotel.getPrice() * request.getNights());
-            adjustPrice(hotel);
-            if(hotel.getFreeRooms() == 0)
-                notifier.publish(" " + hotel.getName() + ", sold out!");
-            else notifier.publish("Update - " + hotel.getName() + ", free rooms: " + hotel.getFreeRooms());
+            if (hotel == null) {
+                response.setSuccess(false)
+                        .setMessage("Hotel not found");
+            } else if (hotel.getFreeRooms() <= 0) {
+                response.setSuccess(false)
+                        .setMessage("No free rooms available");
+            } else {
+                hotel.setFreeRooms(hotel.getFreeRooms() - 1);
+                hotel.setProfit(hotel.getProfit() + hotel.getPrice() * request.getNights());
+                adjustPrice(hotel);
+                if (hotel.getFreeRooms() == 0)
+                    notifier.publish(" " + hotel.getName() + ", sold out!");
+                else notifier.publish("Update - " + hotel.getName() + ", free rooms: " + hotel.getFreeRooms());
 
-            response.setSuccess(true)
-                .setMessage("Reservation successful for " + request.getClientName());
-        }
+                response.setSuccess(true)
+                        .setMessage("Reservation successful for " + request.getClientName());
+            }
 
-        responseObserver.onNext(response.build());
-        responseObserver.onCompleted();
+            responseObserver.onNext(response.build());
+            responseObserver.onCompleted();
+        });
     }
 
     private void adjustPrice(Hotel h) {
